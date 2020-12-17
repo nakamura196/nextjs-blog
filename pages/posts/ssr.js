@@ -1,22 +1,25 @@
 import Layout from "../../components/layout";
-import Head from "next/head";
-import { useRouter } from "next/router";
 import Container from "@material-ui/core/Container";
+import Button from "@material-ui/core/Button";
 import MaterialTable from "material-table";
 import { makeStyles } from "@material-ui/core/styles";
 import Link from "next/link";
+import classNames from "classnames";
 
 const useStyles = makeStyles((theme) => ({
-  table: {
-    //marginTop: 20,
+  stylePersons: {
+    color: "#cf3a2a",
+    marginTop: 50,
+  },
+  link: {
+    textDecoration: "none",
+  },
+  margin: {
+    margin: theme.spacing(1),
   },
 }));
 
-export default function Post({ postData }) {
-  const router = useRouter();
-  console.log(router.query);
-  console.log(postData);
-
+export default function Post({ postData, persons, commodities }) {
   const classes = useStyles();
 
   const columns = [
@@ -25,9 +28,30 @@ export default function Post({ postData }) {
       field: "entry",
       render: (row) => {
         return (
-          <Link href={`?entry=${encodeURIComponent(row.entryUri)}`}>
-            <a>{row.entry}</a>
-          </Link>
+          <div>
+            {/*
+            <Link href={`?entry=${encodeURIComponent(row.entryUri)}`}>
+              <a>{row.entry}</a>
+            </Link>{" "}
+            */}
+            {row.entry}
+            <a
+              className={classNames(classes.link)}
+              href={`https://nakamura196.github.io/depcha/snorql/?describe=${encodeURIComponent(
+                row.entryUri
+              )}`}
+              target="_blank"
+            >
+              <Button
+                className={classes.margin}
+                size="small"
+                variant="contained"
+                color="primary"
+              >
+                RDF
+              </Button>
+            </a>
+          </div>
         );
       },
     },
@@ -37,9 +61,27 @@ export default function Post({ postData }) {
       field: "from",
       render: (row) => {
         return (
-          <Link href={`?from=${encodeURIComponent(row.fromUri)}`}>
-            <a>{row.from}</a>
-          </Link>
+          <div>
+            <Link href={`?from=${encodeURIComponent(row.fromUri)}`}>
+              <a>{row.from}</a>
+            </Link>{" "}
+            <a
+              className={classNames(classes.link)}
+              href={`https://nakamura196.github.io/depcha/snorql/?describe=${encodeURIComponent(
+                row.fromUri
+              )}`}
+              target="_blank"
+            >
+              <Button
+                className={classes.margin}
+                size="small"
+                variant="contained"
+                color="primary"
+              >
+                RDF
+              </Button>
+            </a>
+          </div>
         );
       },
     },
@@ -48,32 +90,64 @@ export default function Post({ postData }) {
       field: "to",
       render: (row) => {
         return (
-          <Link href={`?to=${encodeURIComponent(row.toUri)}`}>
-            <a>{row.to}</a>
-          </Link>
+          <div>
+            <Link href={`?to=${encodeURIComponent(row.toUri)}`}>
+              <a>{row.to}</a>
+            </Link>{" "}
+            <a
+              className={classNames(classes.link)}
+              href={`https://nakamura196.github.io/depcha/snorql/?describe=${encodeURIComponent(
+                row.toUri
+              )}`}
+              target="_blank"
+            >
+              <Button
+                className={classes.margin}
+                size="small"
+                variant="contained"
+                color="primary"
+              >
+                RDF
+              </Button>
+            </a>
+          </div>
         );
       },
     },
     { title: "MEASURABLE", field: "measurable" },
   ];
 
+  let list = [];
+  for (let key in persons) {
+    list.push(<li>{persons[key] + "=" + key}</li>);
+  }
+
+  let listCommodities = [];
+  for (let key in commodities) {
+    listCommodities.push(<li>{key}</li>);
+  }
+
   return (
     <Layout>
       <Container>
-        <div className={classes.table}>
-          <MaterialTable
-            title=""
-            columns={columns}
-            data={postData}
-            //isLoading={this.state.isLoading}
-            options={{
-              pageSize: 10,
-              pageSizeOptions: [10, 20, 50, 100],
-              toolbar: true,
-              paging: true,
-            }}
-          />
-        </div>
+        <MaterialTable
+          title=""
+          columns={columns}
+          data={postData}
+          //isLoading={this.state.isLoading}
+          options={{
+            pageSize: 10,
+            pageSizeOptions: [10, 20, 50, 100],
+            toolbar: true,
+            paging: true,
+          }}
+        />
+
+        <h3 className={classes.stylePersons}>Commodities</h3>
+        <ul>{listCommodities}</ul>
+
+        <h3 className={classes.stylePersons}>Persons</h3>
+        <ul>{list}</ul>
       </Container>
     </Layout>
   );
@@ -127,6 +201,10 @@ export async function getServerSideProps(context) {
 
   const arr = postData;
   const rows = [];
+
+  const persons = {};
+  const commodities = {};
+
   for (const item of arr) {
     rows.push({
       entry: item.ENTRY.value,
@@ -138,11 +216,26 @@ export async function getServerSideProps(context) {
       toUri: item.TO_URI.value,
       measurable: item.MEASURABLE.value,
     });
+
+    if (!commodities[item.MEASURABLE.value]) {
+      commodities[item.MEASURABLE.value] = 0;
+    }
+    commodities[item.MEASURABLE.value] += 1;
+
+    if (!persons[item.TO_URI.value]) {
+      persons[item.TO_URI.value] = item.TO.value;
+    }
+
+    if (!persons[item.FROM_URI.value]) {
+      persons[item.FROM_URI.value] = item.FROM.value;
+    }
   }
-  postData = rows;
+
   return {
     props: {
-      postData,
+      postData: rows,
+      persons,
+      commodities,
     },
   };
 }
