@@ -8,7 +8,7 @@ import Link from "next/link";
 
 const useStyles = makeStyles((theme) => ({
   table: {
-    marginTop: 20,
+    //marginTop: 20,
   },
 }));
 
