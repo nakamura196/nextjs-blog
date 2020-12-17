@@ -59,10 +59,6 @@ export default function Post({ postData }) {
 
   return (
     <Layout>
-      {/* Add this <Head> tag */}
-      <Head>
-        <title>{postData.length}</title>
-      </Head>
       <Container>
         <div className={classes.table}>
           <MaterialTable

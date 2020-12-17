@@ -72,11 +72,6 @@ export default function Layout({ children, home }) {
               </a>
             </Link>
           </Button>
-          <Button color="inherit">
-            <a href="/snorql" className={styles.link}>
-              Snorql
-            </a>
-          </Button>
         </Toolbar>
       </AppBar>
 
