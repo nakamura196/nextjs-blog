@@ -43,6 +43,9 @@ export default function Home({ allPostsData }) {
             </small>
           </li>
           ))}
+          <li className={utilStyles.listItem}><Link href={`/posts/ssr?id=bbb`}>
+              <a>test</a>
+            </Link></li>
         </ul>
       </section>
 
