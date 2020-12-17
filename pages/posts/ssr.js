@@ -5,6 +5,7 @@ import MaterialTable from "material-table";
 import { makeStyles } from "@material-ui/core/styles";
 import Link from "next/link";
 import classNames from "classnames";
+import { Pie } from 'react-chartjs-2';
 
 const useStyles = makeStyles((theme) => ({
   stylePersons: {
@@ -119,13 +120,39 @@ export default function Post({ postData, persons, commodities }) {
 
   let list = [];
   for (let key in persons) {
-    list.push(<li>{persons[key] + "=" + key}</li>);
+    list.push(<li key={key}>{persons[key] + "=" + key}</li>);
   }
 
+  //------------
+
+  const labels = []
+  const data = []
+
+  let arr = Object.keys(commodities).map((e)=>({ key: e, value: commodities[e] }));
+  arr.sort(function(a,b){
+    if(a.value < b.value) return 1;
+    if(a.value > b.value) return -1;
+    return 0;
+  });
+
   let listCommodities = [];
-  for (let key in commodities) {
-    listCommodities.push(<li>{key}</li>);
-  }
+  arr.map((commodity) => (
+    listCommodities.push(<li key={commodity.key}>{commodity.key + ": "+commodity.value}</li>),
+    labels.push(commodity.key),
+    data.push(commodity.value)
+  ))
+
+  const graphData= {
+    labels,
+    datasets: [
+      // 表示するデータセット
+      {
+        data
+      },
+    ],
+  };
+
+  //------------
 
   return (
     <Layout>
@@ -145,6 +172,8 @@ export default function Post({ postData, persons, commodities }) {
 
         <h3 className={classes.stylePersons}>Commodities</h3>
         <ul>{listCommodities}</ul>
+
+        <Pie data={graphData} />
 
         <h3 className={classes.stylePersons}>Persons</h3>
         <ul>{list}</ul>
@@ -186,8 +215,7 @@ export async function getServerSideProps(context) {
       ?transfer bk:transfers/bk:commodity ?MEASURABLE  .
     }
     ORDER BY ?WHEN
-    LIMIT 100
-            `;
+    `;
 
   const url =
     "https://dydra.com/ut-digital-archives/kokaze/sparql?output=json&query=" +

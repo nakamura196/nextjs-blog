@@ -34,8 +34,6 @@ html, body {
   height: 18px;
   box-sizing: border-box;
 
-  display: none;
-
   border: solid 2px transparent;
   border-top-color: #E64A19;
   border-left-color: #E64A19;
