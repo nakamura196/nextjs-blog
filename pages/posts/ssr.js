@@ -3,12 +3,21 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import Container from "@material-ui/core/Container";
 import MaterialTable from "material-table";
+import { makeStyles } from "@material-ui/core/styles";
 import Link from "next/link";
+
+const useStyles = makeStyles((theme) => ({
+  table: {
+    marginTop: 20,
+  },
+}));
 
 export default function Post({ postData }) {
   const router = useRouter();
   console.log(router.query);
   console.log(postData);
+
+  const classes = useStyles();
 
   const columns = [
     {
@@ -55,18 +64,20 @@ export default function Post({ postData }) {
         <title>{postData.length}</title>
       </Head>
       <Container>
-        <MaterialTable
-          title=""
-          columns={columns}
-          data={postData}
-          //isLoading={this.state.isLoading}
-          options={{
-            pageSize: 10,
-            pageSizeOptions: [10, 20, 50, 100],
-            toolbar: true,
-            paging: true,
-          }}
-        />
+        <div className={classes.table}>
+          <MaterialTable
+            title=""
+            columns={columns}
+            data={postData}
+            //isLoading={this.state.isLoading}
+            options={{
+              pageSize: 10,
+              pageSizeOptions: [10, 20, 50, 100],
+              toolbar: true,
+              paging: true,
+            }}
+          />
+        </div>
       </Container>
     </Layout>
   );

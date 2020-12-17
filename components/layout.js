@@ -1,15 +1,37 @@
 import Head from 'next/head'
 import styles from './layout.module.css'
 import utilStyles from '../styles/utils.module.css'
+import { makeStyles } from "@material-ui/core/styles";
 import Link from 'next/link'
 
-const name = "Satoru Nakamura"
+import AppBar from "@material-ui/core/AppBar";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
+import Button from "@material-ui/core/Button";
+
 export const siteTitle = "Next.js Sample Website"
 
+const useStyles = makeStyles((theme) => ({
+  root: {
+    flexGrow: 1,
+  },
+  menuButton: {
+    marginRight: theme.spacing(2),
+  },
+  title: {
+    flexGrow: 1,
+  },
+  link: {
+    textDecoration: "none",
+    color: "white",
+  },
+}));
+
 export default function Layout({ children, home }) {
-  return <div className={styles.container}>
+  return <div className={useStyles.root}>
     <Head>
         <link rel="icon" href="/favicon.ico" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
         <meta
           name="description"
           content="Learn how to build a personal website using Next.js"
@@ -24,35 +46,39 @@ export default function Layout({ children, home }) {
         <meta name="twitter:card" content="summary_large_image" />
       </Head>
 
-      <header className={styles.header}>
-        {home ? (
-          <>
-            <img
-              src="/images/profile.jpg"
-              className={`${styles.headerHomeImage} ${utilStyles.borderCircle}`}
-              alt={name}
-            />
-            <h1 className={utilStyles.heading2Xl}>{name}</h1>
-          </>
-        ) : (
-          <>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography className={styles.title} edge="start" variant="h6">
+            depcha analysis
+          </Typography>
+          <Button color="inherit">
             <Link href="/">
-              <a>
-                <img
-                  src="/images/profile.jpg"
-                  className={`${styles.headerImage} ${utilStyles.borderCircle}`}
-                  alt={name}
-                />
+            <a className={styles.link} >
+              Home
               </a>
             </Link>
-            <h2 className={utilStyles.headingLg}>
-              <Link href="/">
-                <a className={utilStyles.colorInherit}>{name}</a>
-              </Link>
-            </h2>
-          </>
-        )}
-      </header>
+          </Button>
+          <Button color="inherit">
+            <Link href="/about">
+            <a className={styles.link} >
+              About
+              </a>
+            </Link>
+          </Button>
+          <Button color="inherit">
+            <Link href="/posts/ssr">
+              <a className={styles.link} >
+              Example 01
+              </a>
+            </Link>
+          </Button>
+          <Button color="inherit">
+            <a href="/snorql" className={styles.link}>
+              Snorql
+            </a>
+          </Button>
+        </Toolbar>
+      </AppBar>
 
       <main>{children}</main>
       {!home && (
