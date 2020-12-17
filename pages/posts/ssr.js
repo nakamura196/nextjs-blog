@@ -1,28 +1,73 @@
 import Layout from "../../components/layout";
 import Head from "next/head";
-import utilStyles from "../../styles/utils.module.css";
 import { useRouter } from "next/router";
+import Container from "@material-ui/core/Container";
+import MaterialTable from "material-table";
+import Link from "next/link";
 
 export default function Post({ postData }) {
   const router = useRouter();
   console.log(router.query);
   console.log(postData);
+
+  const columns = [
+    {
+      title: "ENTRY",
+      field: "entry",
+      render: (row) => {
+        return (
+          <Link href={`?entry=${encodeURIComponent(row.entryUri)}`}>
+            <a>{row.entry}</a>
+          </Link>
+        );
+      },
+    },
+    { title: "WHEN", field: "when" },
+    {
+      title: "FROM",
+      field: "from",
+      render: (row) => {
+        return (
+          <Link href={`?from=${encodeURIComponent(row.fromUri)}`}>
+            <a>{row.from}</a>
+          </Link>
+        );
+      },
+    },
+    {
+      title: "TO",
+      field: "to",
+      render: (row) => {
+        return (
+          <Link href={`?to=${encodeURIComponent(row.toUri)}`}>
+            <a>{row.to}</a>
+          </Link>
+        );
+      },
+    },
+    { title: "MEASURABLE", field: "measurable" },
+  ];
+
   return (
     <Layout>
       {/* Add this <Head> tag */}
       <Head>
         <title>{postData.length}</title>
       </Head>
-
-      <article>
-        <ul className={utilStyles.list}>
-          {postData.map(({ entry, entryUri }) => (
-            <li className={utilStyles.listItem} key={entryUri}>
-              {entry}
-            </li>
-          ))}
-        </ul>
-      </article>
+      <Container>
+        <MaterialTable
+          title=""
+          columns={columns}
+          data={postData}
+          //isLoading={this.state.isLoading}
+          options={{
+            pageSize: 10,
+            pageSizeOptions: [10, 20, 50, 100],
+            toolbar: true,
+            paging: true,
+          }}
+        />
+      </Container>
     </Layout>
   );
 }
