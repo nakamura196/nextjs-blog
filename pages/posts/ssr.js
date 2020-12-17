@@ -1,4 +1,5 @@
-import Layout from "../../components/layout";
+import Head from "next/head";
+import Layout, { siteTitle } from "../../components/layout";
 import Container from "@material-ui/core/Container";
 import Button from "@material-ui/core/Button";
 import MaterialTable from "material-table";
@@ -18,6 +19,9 @@ const useStyles = makeStyles((theme) => ({
   margin: {
     margin: theme.spacing(1),
   },
+  li: {
+    wordBreak: "break-all"
+  }
 }));
 
 export default function Post({ postData, persons, commodities }) {
@@ -120,7 +124,7 @@ export default function Post({ postData, persons, commodities }) {
 
   let list = [];
   for (let key in persons) {
-    list.push(<li key={key}>{persons[key] + "=" + key}</li>);
+    list.push(<li key={key} className={classes.li}>{persons[key] + "=" + key}</li>);
   }
 
   //------------
@@ -156,6 +160,9 @@ export default function Post({ postData, persons, commodities }) {
 
   return (
     <Layout>
+      <Head>
+        <title>{siteTitle}</title>
+      </Head>
       <Container>
         <MaterialTable
           title=""
