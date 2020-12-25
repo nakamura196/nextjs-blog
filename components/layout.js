@@ -129,6 +129,11 @@ export default function Layout({ children }) {
               <a className={styles.link}>Example 01</a>
             </Link>
           </Button>
+          <Button color="inherit">
+            <Link href="/ssr">
+              <a className={styles.link}>Example 02</a>
+            </Link>
+          </Button>
         </Toolbar>
       </AppBar>
       <Toolbar id="back-to-top-anchor" />

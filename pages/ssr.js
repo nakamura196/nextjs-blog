@@ -1,0 +1,262 @@
+import Head from "next/head";
+import Layout, { siteTitle } from "../components/layout";
+import Container from "@material-ui/core/Container";
+import Button from "@material-ui/core/Button";
+import MaterialTable from "material-table";
+import { makeStyles } from "@material-ui/core/styles";
+import Link from "next/link";
+import classNames from "classnames";
+import { HorizontalBar } from "react-chartjs-2";
+import FormControl from "@material-ui/core/FormControl";
+import Select from "@material-ui/core/Select";
+import InputLabel from "@material-ui/core/InputLabel";
+
+const useStyles = makeStyles((theme) => ({
+  stylePersons: {
+    color: "#cf3a2a",
+    marginTop: 50,
+  },
+  link: {
+    textDecoration: "none",
+  },
+  graphDiv: {
+    marginTop: 50,
+  },
+  formControl: {
+    margin: theme.spacing(2),
+    minWidth: 120,
+  },
+}));
+
+export default function Post({ postData, to, g }) {
+  const classes = useStyles();
+
+  const children = {};
+
+  for (let i = 0; i < postData.length; i++) {
+    const obj = postData[i];
+    const from = obj.from.value;
+    const to = obj.to.value;
+    const transfer = obj.transfer.value;
+    const commodity = obj.commodity ? obj.commodity.value : "None";
+
+    if (!children[to]) {
+      children[to] = {};
+    }
+
+    if (!children[to][commodity]) {
+      children[to][commodity] = {};
+    }
+
+    if (!children[to][commodity][from]) {
+      children[to][commodity][from] = 0;
+    }
+    children[to][commodity][from] += 1;
+  }
+
+  to = children[to] ? to : Object.keys(children)[0];
+  let obj = children[to];
+
+  const graphs = [];
+
+  for (let label in obj) {
+    const labels = [];
+    const data = [];
+
+    const obj2 = obj[label];
+    let arr = Object.keys(obj2).map((e) => ({ key: e, value: obj2[e] }));
+
+    arr.sort(function (a, b) {
+      if (a.value < b.value) return 1;
+      if (a.value > b.value) return -1;
+      return 0;
+    });
+
+    arr.map((e) => {
+      labels.push(e.key.split("#")[1]);
+      data.push(e.value);
+    });
+
+    graphs.push({
+      labels,
+      datasets: [
+        // 表示するデータセット
+        {
+          data,
+          label: "取引数",
+        },
+      ],
+      label,
+    });
+  }
+
+  /** グラフオプション */
+  const graphOption = {
+    scales: {
+      xAxes: [
+        // x軸設定
+        {
+          ticks: {
+            // 軸ラベル設定
+            min: 0,
+            stepSize: 1,
+          },
+        },
+      ],
+    },
+  };
+
+  function onChange(e) {
+    const tmp = e.target.value.split(",");
+    location.href =
+      "?g=" + encodeURIComponent(tmp[0]) + "&to=" + encodeURIComponent(tmp[1]);
+  }
+
+  //------------
+
+  var states = [];
+  for (let toUri in children) {
+    states.push({
+      name: toUri.split("#")[1], // + "（" + Object.keys(children[toUri]).length + "）",
+      code: toUri,
+    });
+  }
+
+  var options = states.map((n) => (
+    <option key={n.code} value={g + "," + n.code}>
+      {n.name}
+    </option>
+  ));
+
+  //------------
+
+  var states2 = [
+    {
+      name: "http://example.org/depcha.stagville.1",
+      code: "http://example.org/depcha.stagville.1",
+    },
+    {
+      name: "http://example.org/depcha.wheaton.1",
+      code: "http://example.org/depcha.wheaton.1",
+    },
+    {
+      name: "http://example.org/depcha.schlitz.1",
+      code: "http://example.org/depcha.schlitz.1",
+    },
+    {
+      name: "http://example.org/depcha.ward_ledger.1",
+      code: "http://example.org/depcha.ward_ledger.1",
+    },
+  ];
+
+  var options2 = states2.map((n) => (
+    <option key={n.code} value={n.code + "," + to}>
+      {n.name}
+    </option>
+  ));
+
+  //------------
+
+  return (
+    <Layout>
+      <Head>
+        <title>{siteTitle}</title>
+      </Head>
+      <Container>
+        <div>
+          <FormControl className={classes.formControl}>
+            <InputLabel>Graph URI</InputLabel>
+            <Select native value={g + "," + to} onChange={onChange}>
+              {options2}
+            </Select>
+          </FormControl>
+          <FormControl className={classes.formControl}>
+            <InputLabel>To URI</InputLabel>
+            <Select native value={g + "," + to} onChange={onChange}>
+              {options}
+            </Select>
+          </FormControl>
+        </div>
+
+        {graphs.map((graphData) => {
+          return (
+            <div key={graphData.label} className={classes.stylePersons}>
+              <h3>{graphData.label}</h3>
+              <HorizontalBar data={graphData} options={graphOption} />
+            </div>
+          );
+        })}
+      </Container>
+    </Layout>
+  );
+}
+
+export async function getServerSideProps2(context) {
+  const url = "http://localhost:3000/test.json";
+  const res = await fetch(url);
+  let postData = await res.json();
+  if (postData.results) {
+    postData = postData.results.bindings;
+  }
+  return {
+    props: {
+      postData,
+    },
+  };
+}
+
+export async function getServerSideProps(context) {
+  const params = context.query;
+
+  const g = params.g
+    ? decodeURIComponent(params.g)
+    : "http://example.org/depcha.ward_ledger.1";
+  const to = decodeURIComponent(params.to) || "null";
+
+  const query =
+    `
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX dct: <http://purl.org/dc/terms/>
+    PREFIX gams: <https://gams.uni-graz.at/o:gams-ontology#>
+    PREFIX gn: <http://www.geonames.org/ontology#>
+    PREFIX functx: <http://www.functx.com>
+    PREFIX bk: <https://gams.uni-graz.at/o:depcha.bookkeeping#>
+    PREFIX t: <http://www.tei-c.org/ns/1.0>
+            
+    SELECT DISTINCT *
+    FROM <` +
+    g +
+    `>
+    WHERE {
+      ?transaction rdf:type bk:Transaction;
+                            bk:consistsOf ?transfer.
+      
+      ?transfer bk:from ?from;
+                          bk:to ?to;
+                          bk:transfers ?measure.
+      
+      OPTIONAL{?measure bk:commodity ?commodity}.
+    }
+    ORDER BY ?transfer
+    `;
+
+  const url =
+    "https://dydra.com/naoki_cocaze/depcha-analysis/sparql?output=json&query=" +
+    encodeURIComponent(query);
+
+  const res = await fetch(url);
+  let postData = await res.json();
+  if (postData.results) {
+    postData = postData.results.bindings;
+  }
+
+  return {
+    props: {
+      postData,
+      to,
+      g,
+    },
+  };
+}
