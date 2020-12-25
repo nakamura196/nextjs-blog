@@ -10,6 +10,7 @@ import { HorizontalBar } from "react-chartjs-2";
 import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
 import InputLabel from "@material-ui/core/InputLabel";
+import Router from 'next/router'
 
 const useStyles = makeStyles((theme) => ({
   stylePersons: {
@@ -109,8 +110,8 @@ export default function Post({ postData, to, toUris, g }) {
 
   function onChange(e) {
     const tmp = e.target.value.split(",");
-    location.href =
-      "?g=" + encodeURIComponent(tmp[0]) + "&to=" + encodeURIComponent(tmp[1]);
+    Router.push("?g=" + encodeURIComponent(tmp[0]) + "&to=" + encodeURIComponent(tmp[1])
+    )
   }
 
   //------------
