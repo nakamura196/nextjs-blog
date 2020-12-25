@@ -13,8 +13,10 @@ import InputLabel from "@material-ui/core/InputLabel";
 
 const useStyles = makeStyles((theme) => ({
   stylePersons: {
-    color: "#cf3a2a",
     marginTop: 50,
+  },
+  styleLabel: {
+    color: "#cf3a2a",
   },
   link: {
     textDecoration: "none",
@@ -28,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Post({ postData, to, g }) {
+export default function Post({ postData, to, toUris, g }) {
   const classes = useStyles();
 
   const children = {};
@@ -36,7 +38,7 @@ export default function Post({ postData, to, g }) {
   for (let i = 0; i < postData.length; i++) {
     const obj = postData[i];
     const from = obj.from.value;
-    const to = obj.to.value;
+    //const to = obj.to.value;
     const transfer = obj.transfer.value;
     const commodity = obj.commodity ? obj.commodity.value : "None";
 
@@ -54,7 +56,6 @@ export default function Post({ postData, to, g }) {
     children[to][commodity][from] += 1;
   }
 
-  to = children[to] ? to : Object.keys(children)[0];
   let obj = children[to];
 
   const graphs = [];
@@ -83,7 +84,7 @@ export default function Post({ postData, to, g }) {
         // 表示するデータセット
         {
           data,
-          label: "取引数",
+          label: "# of Transfer",
         },
       ],
       label,
@@ -115,12 +116,12 @@ export default function Post({ postData, to, g }) {
   //------------
 
   var states = [];
-  for (let toUri in children) {
+  toUris.map((toUri) => {
     states.push({
       name: toUri.split("#")[1], // + "（" + Object.keys(children[toUri]).length + "）",
       code: toUri,
     });
-  }
+  })
 
   var options = states.map((n) => (
     <option key={n.code} value={g + "," + n.code}>
@@ -171,7 +172,7 @@ export default function Post({ postData, to, g }) {
             </Select>
           </FormControl>
           <FormControl className={classes.formControl}>
-            <InputLabel>To URI</InputLabel>
+            <InputLabel>To</InputLabel>
             <Select native value={g + "," + to} onChange={onChange}>
               {options}
             </Select>
@@ -181,7 +182,7 @@ export default function Post({ postData, to, g }) {
         {graphs.map((graphData) => {
           return (
             <div key={graphData.label} className={classes.stylePersons}>
-              <h3>{graphData.label}</h3>
+              <h3><small>Commodity:</small> <span className={classes.styleLabel}>{graphData.label}</span></h3>
               <HorizontalBar data={graphData} options={graphOption} />
             </div>
           );
@@ -211,7 +212,49 @@ export async function getServerSideProps(context) {
   const g = params.g
     ? decodeURIComponent(params.g)
     : "http://example.org/depcha.ward_ledger.1";
-  const to = decodeURIComponent(params.to) || "null";
+  let to = decodeURIComponent(params.to) || "null";
+
+  const query2 =
+    `
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX dct: <http://purl.org/dc/terms/>
+    PREFIX gams: <https://gams.uni-graz.at/o:gams-ontology#>
+    PREFIX gn: <http://www.geonames.org/ontology#>
+    PREFIX functx: <http://www.functx.com>
+    PREFIX bk: <https://gams.uni-graz.at/o:depcha.bookkeeping#>
+    PREFIX t: <http://www.tei-c.org/ns/1.0>
+            
+    SELECT DISTINCT ?to
+    FROM <` +
+    g +
+    `>
+    WHERE {
+      ?transfer bk:to ?to.
+    }
+    ORDER BY ?transfer
+    `;
+
+  const url2 =
+    "https://dydra.com/naoki_cocaze/depcha-analysis/sparql?output=json&query=" +
+    encodeURIComponent(query2);
+
+  const res2 = await fetch(url2);
+  let toList = await res2.json();
+  if (toList.results) {
+    toList = toList.results.bindings;
+  }
+
+  const toUris = []
+  toList.map((obj) => {
+    const uri = obj.to.value
+    toUris.push(uri)
+  })
+
+  if(!toUris.includes(to)){
+    to = toUris[0]
+  }
 
   const query =
     `
@@ -234,7 +277,7 @@ export async function getServerSideProps(context) {
                             bk:consistsOf ?transfer.
       
       ?transfer bk:from ?from;
-                          bk:to ?to;
+                          bk:to <` + to + `>;
                           bk:transfers ?measure.
       
       OPTIONAL{?measure bk:commodity ?commodity}.
@@ -256,6 +299,7 @@ export async function getServerSideProps(context) {
     props: {
       postData,
       to,
+      toUris,
       g,
     },
   };
