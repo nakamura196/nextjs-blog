@@ -28,7 +28,7 @@ const useStyles = makeStyles((theme) => ({
   formControl: {
     margin: theme.spacing(2),
     minWidth: 120,
-  },
+  }
 }));
 
 export default function Post({ postData, to, toUris, g }) {
@@ -61,6 +61,34 @@ export default function Post({ postData, to, toUris, g }) {
 
   const graphs = [];
 
+  const data2 = []
+  const labels2 = []
+
+  let max = -1
+
+  for (let label in obj) {
+    const labels = [];
+    const data = [];
+
+    const obj2 = obj[label];
+    let arr = Object.keys(obj2).map((e) => ({ key: e, value: obj2[e] }));
+
+    arr.sort(function (a, b) {
+      if (a.value < b.value) return 1;
+      if (a.value > b.value) return -1;
+      return 0;
+    });
+
+    arr.map((e) => {
+      labels2.push(label+" - "+e.key.split("#")[1]+"（"+e.value.toLocaleString()+"）");
+      data2.push(e.value);
+      
+      max = e.value > max ? e.value : max
+    });
+
+    // break
+  }
+
   for (let label in obj) {
     const labels = [];
     const data = [];
@@ -80,16 +108,18 @@ export default function Post({ postData, to, toUris, g }) {
     });
 
     graphs.push({
-      labels,
+      labels: labels2,
       datasets: [
         // 表示するデータセット
         {
-          data,
+          data: data2,
           label: "# of Transfer",
-        },
+        }
       ],
       label,
     });
+
+    break
   }
 
   /** グラフオプション */
@@ -101,6 +131,7 @@ export default function Post({ postData, to, toUris, g }) {
           ticks: {
             // 軸ラベル設定
             min: 0,
+            max,
             stepSize: 1,
           },
         },
@@ -183,8 +214,7 @@ export default function Post({ postData, to, toUris, g }) {
         {graphs.map((graphData) => {
           return (
             <div key={graphData.label} className={classes.stylePersons}>
-              <h3><small>Commodity:</small> <span className={classes.styleLabel}>{graphData.label}</span></h3>
-              <HorizontalBar data={graphData} options={graphOption} />
+              <HorizontalBar data={graphData} options={graphOption} height={Math.max(graphData.labels.length * 5, 50)}/>
             </div>
           );
         })}
@@ -203,6 +233,9 @@ export async function getServerSideProps2(context) {
   return {
     props: {
       postData,
+      to : "https://gams.uni-graz.at/o:depcha.ward_ledger.1#ThosWardLtd",
+      toUris : ["https://gams.uni-graz.at/o:depcha.ward_ledger.1#ThosWardLtd"],
+      g : "http://example.org/depcha.ward_ledger.1"
     },
   };
 }
